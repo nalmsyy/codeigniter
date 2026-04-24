@@ -9,6 +9,7 @@ class TransaksiController extends BaseController
 {
     public function index()
     {
-        //
+        // Panggil view v_keranjang
+        return view('v_keranjang');
     }
 }

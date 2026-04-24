@@ -9,6 +9,7 @@ class ProdukController extends BaseController
 {
     public function index()
     {
-        //
+        // Panggil view v_produk
+        return view('v_produk');
     }
 }
