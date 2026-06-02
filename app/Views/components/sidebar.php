@@ -1,5 +1,4 @@
 <!-- ======= Sidebar ======= -->
-<!-- ======= Sidebar ======= -->
 <aside id="sidebar" class="sidebar">
 
     <ul class="sidebar-nav" id="sidebar-nav">
@@ -16,19 +15,28 @@
                 <i class="bi bi-cart-check"></i>
                 <span>Keranjang</span>
             </a>
-        </li><!-- End Keranjang Nav --> 
+        </li><!-- End Keranjang Nav -->
+
         <?php
-            if (session()->get('role') == 'admin') {
+        if (session()->get('role') == 'admin') {
         ?>
-        <li class="nav-item">
-            <a class="nav-link <?php echo (uri_string() == 'produk') ? "" : "collapsed" ?>" href="produk">
-                <i class="bi bi-receipt"></i>
-                <span>Produk</span>
-            </a>
-        </li><!-- End Produk Nav --> 
+
+            <li class="nav-item">
+                <a class="nav-link <?php echo (uri_string() == 'produk') ? "" : "collapsed" ?>" href="produk">
+                    <i class="bi bi-receipt"></i>
+                    <span>Produk</span>
+                </a>
+            </li><!-- End Produk Nav -->
         <?php
         }
         ?>
+
+        <li class="nav-item">
+            <a class="nav-link <?php echo (uri_string() == 'faq') ? "" : "collapsed" ?>" href="faq">
+                <i class="bi bi-question-circle"></i>
+                <span>F.A.Q</span>
+            </a>
+        </li><!-- End FAQ Nav -->
     </ul>
 
 </aside><!-- End Sidebar-->
