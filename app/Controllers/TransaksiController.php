@@ -100,9 +100,6 @@ class TransaksiController extends BaseController
 
     public function checkout()
     { 
-        $service = new RajaOngkirService();
-        $response = $service->getDestination('semarang');
-        $response2 = $service->getCost('64999','65042','1000','jne'); 
         $data = [
             'items' => $this->cart->contents(),
             'total' => $this->cart->total()
