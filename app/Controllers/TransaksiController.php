@@ -25,9 +25,22 @@ class TransaksiController extends BaseController
 
     public function index()
     {  
+        // Baca diskon aktif dari session
+        $activeDiscount  = session('active_discount');
+        $nominalDiskon   = ($activeDiscount !== null) ? (float) $activeDiscount['nominal'] : 0;
+
+        // Hitung total keranjang setelah diskon
+        $totalSetelahDiskon = 0;
+        foreach ($this->cart->contents() as $item) {
+            $hargaDiskon         = max(0, (float) $item['price'] - $nominalDiskon);
+            $totalSetelahDiskon += $hargaDiskon * $item['qty'];
+        }
+
         $data = [
-            'items' => $this->cart->contents(),
-            'total' => $this->cart->total()
+            'items'          => $this->cart->contents(),
+            'total'          => $this->cart->total(),       // total asli (fallback)
+            'nominalDiskon'  => $nominalDiskon,
+            'totalDiskon'    => $totalSetelahDiskon,        // total setelah diskon
         ];
 
         return view('v_keranjang', $data);
@@ -35,6 +48,7 @@ class TransaksiController extends BaseController
 
     public function cart_add()
     {
+        // Simpan harga ASLI ke cart — diskon dihitung di view & saat buy
         $this->cart->insert([
             'id'      => $this->request->getPost('id'),
             'qty'     => 1,
@@ -100,9 +114,22 @@ class TransaksiController extends BaseController
 
     public function checkout()
     { 
+        // Baca diskon aktif dari session
+        $activeDiscount  = session('active_discount');
+        $nominalDiskon   = ($activeDiscount !== null) ? (float) $activeDiscount['nominal'] : 0;
+
+        // Hitung subtotal setelah diskon untuk seluruh keranjang
+        $subtotalDiskon = 0;
+        foreach ($this->cart->contents() as $item) {
+            $hargaDiskon     = max(0, (float) $item['price'] - $nominalDiskon);
+            $subtotalDiskon += $hargaDiskon * $item['qty'];
+        }
+
         $data = [
-            'items' => $this->cart->contents(),
-            'total' => $this->cart->total()
+            'items'         => $this->cart->contents(),
+            'total'         => $this->cart->total(),   // total asli (fallback)
+            'nominalDiskon' => $nominalDiskon,
+            'subtotalDiskon'=> $subtotalDiskon,         // subtotal setelah diskon (untuk JS)
         ];
 
         return view('v_checkout', $data);
@@ -169,12 +196,18 @@ class TransaksiController extends BaseController
             return redirect()->back();
         }
 
+        // Baca diskon aktif dari session
+        $activeDiscount = session('active_discount');
+        $nominalDiskon  = ($activeDiscount !== null) ? (float) $activeDiscount['nominal'] : 0;
+
         $db = \Config\Database::connect();
         $db->transStart(); 
 
+        // Hitung subtotal setelah diskon
         $subtotal = 0;
         foreach ($cartItems as $item) {
-            $subtotal += $item['qty'] * $item['price'];
+            $hargaDiskon  = max(0, (float) $item['price'] - $nominalDiskon);
+            $subtotal    += $hargaDiskon * $item['qty'];
         }
 
         $ongkir = (int) $this->request->getPost('ongkir');
@@ -183,7 +216,7 @@ class TransaksiController extends BaseController
             'username'    => $this->request->getPost('username'),
             'alamat'      => $this->request->getPost('alamat'),
             'ongkir'      => $ongkir,
-            'total_harga' => $subtotal + $ongkir,
+            'total_harga' => $subtotal + $ongkir,   // total setelah diskon + ongkir
             'status'      => 0, 
         ];
 
@@ -195,14 +228,17 @@ class TransaksiController extends BaseController
 
         $transactionId = $this->transactionModel->getInsertID();
 
-        // insert transaction detail
+        // insert transaction detail — subtotal_harga dan diskon sudah menyesuaikan diskon aktif
         foreach ($cartItems as $item) {
+            $hargaDiskon    = max(0, (float) $item['price'] - $nominalDiskon);
+            $subtotalDetail = $hargaDiskon * $item['qty'];
+
             $this->transactionDetailModel->insert([
                 'transaction_id' => $transactionId,
                 'product_id'     => $item['id'],
                 'jumlah'         => $item['qty'],
-                'diskon'         => 0,
-                'subtotal_harga' => $item['qty'] * $item['price'] 
+                'diskon'         => $nominalDiskon,              // nominal diskon per item
+                'subtotal_harga' => $subtotalDetail              // harga diskon * jumlah
             ]);
         }
 
@@ -212,7 +248,7 @@ class TransaksiController extends BaseController
             return redirect()->back()->with('error', 'Gagal membuat transaksi');
         }
 
-            //hapus session keranjang belanja 
+        // hapus session keranjang belanja 
         $this->cart->destroy();
         return redirect()->to(base_url());
     }
@@ -236,3 +272,4 @@ class TransaksiController extends BaseController
     }
 
 }
+

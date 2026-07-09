@@ -64,12 +64,26 @@
             <?php 
             if (!empty($items)) :
                 foreach ($items as $index => $item) :
+                    // Hitung harga dan sub total setelah diskon
+                    $hargaDiskon    = max(0, (float) $item['price'] - $nominalDiskon);
+                    $subTotalDiskon = $hargaDiskon * $item['qty'];
             ?>
                     <tr>
                         <td><?= $item['name'] ?></td>
-                        <td><?= number_to_currency($item['price'], 'IDR') ?></td>
+                        <td>
+                            <?php if ($nominalDiskon > 0) : ?>
+                                <span style="text-decoration: line-through; color: #999; font-size: 0.85em;">
+                                    <?= number_to_currency($item['price'], 'IDR') ?>
+                                </span><br>
+                                <span style="color: #198754; font-weight: bold;">
+                                    <?= number_to_currency($hargaDiskon, 'IDR') ?>
+                                </span>
+                            <?php else : ?>
+                                <?= number_to_currency($item['price'], 'IDR') ?>
+                            <?php endif; ?>
+                        </td>
                         <td><?= $item['qty'] ?></td>
-                        <td><?= number_to_currency($item['price'] * $item['qty'], 'IDR') ?></td>
+                        <td><?= number_to_currency($subTotalDiskon, 'IDR') ?></td>
                     </tr>
             <?php
                 endforeach;
@@ -78,12 +92,12 @@
             <tr>
                 <td colspan="2"></td>
                 <td>Subtotal</td>
-                <td><?= number_to_currency($total, 'IDR') ?></td>
+                <td><?= number_to_currency($subtotalDiskon, 'IDR') ?></td>
             </tr>
             <tr>
                 <td colspan="2"></td>
                 <td>Total</td>
-                <td><span id="total"><?= number_to_currency($total, 'IDR') ?></span></td>
+                <td><span id="total"><?= number_to_currency($subtotalDiskon, 'IDR') ?></span></td>
             </tr>
         </tbody>
         </table>
@@ -96,7 +110,8 @@
 $(document).ready(function() {
 
     let ongkir = 0;
-    let subtotal = <?= $total ?>;
+    // Gunakan subtotalDiskon sebagai base — sudah memperhitungkan diskon aktif
+    let subtotal = <?= $subtotalDiskon ?>;
     hitungTotal();
 
     function hitungTotal() {

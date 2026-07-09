@@ -8,8 +8,8 @@ if (session()->getFlashData('success')) {
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 <?php
-}
-?> 
+} 
+?>
 <?= form_open('keranjang/edit') ?>
 <!-- Table with stripped rows -->
 <table class="table datatable">
@@ -28,13 +28,27 @@ if (session()->getFlashData('success')) {
         $i = 1;
         if (!empty($items)) :
             foreach ($items as $index => $item) :
+                // Hitung harga dan subtotal setelah diskon per item
+                $hargaDiskon    = max(0, (float) $item['price'] - $nominalDiskon);
+                $subtotalDiskon = $hargaDiskon * $item['qty'];
         ?>
                 <tr>
                     <td><?= $item['name'] ?></td>
                     <td><img src="<?= base_url() . "img/" . $item['options']['foto'] ?>" width="100px"></td>
-                    <td><?= number_to_currency($item['price'], 'IDR') ?></td> 
+                    <td>
+                        <?php if ($nominalDiskon > 0) : ?>
+                            <span style="text-decoration: line-through; color: #999; font-size: 0.85em;">
+                                <?= number_to_currency($item['price'], 'IDR') ?>
+                            </span><br>
+                            <span style="color: #198754; font-weight: bold;">
+                                <?= number_to_currency($hargaDiskon, 'IDR') ?>
+                            </span>
+                        <?php else : ?>
+                            <?= number_to_currency($item['price'], 'IDR') ?>
+                        <?php endif; ?>
+                    </td>
                     <td><input type="number" min="1" name="qty<?= $i++ ?>" class="form-control" value="<?= $item['qty'] ?>"></td>
-                    <td><?= number_to_currency($item['subtotal'], 'IDR') ?></td>
+                    <td><?= number_to_currency($subtotalDiskon, 'IDR') ?></td>
                     <td>
                         <a href="<?= base_url('keranjang/delete/' . $item['rowid'] . '') ?>" class="btn btn-danger"><i class="bi bi-trash"></i></a>
                     </td>
@@ -47,7 +61,11 @@ if (session()->getFlashData('success')) {
 </table> 
 
 <div class="alert alert-info">
-    <?= "Total = " . number_to_currency($total, 'IDR') ?>
+    <?php
+    // Tampilkan total setelah diskon jika ada diskon aktif, else total asli
+    $tampilTotal = ($nominalDiskon > 0) ? $totalDiskon : $total;
+    ?>
+    <?= "Total = " . number_to_currency($tampilTotal, 'IDR') ?>
 </div>
 
 <button type="submit" class="btn btn-primary">Perbarui Keranjang</button>
@@ -58,4 +76,4 @@ if (session()->getFlashData('success')) {
 <?php endif; ?>
 <?= form_close() ?>
 
-<?= $this->endSection() ?>
+<?= $this->endSection() ?>

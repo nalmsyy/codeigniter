@@ -1,0 +1,35 @@
+### index
+GET http://localhost:8080/api/discounts
+Accept: application/json
+Authorization: Bearer my-secret-token
+
+### show
+GET http://localhost:8080/api/discounts/1
+Accept: application/json
+Authorization: Bearer my-secret-token
+
+### create
+POST http://localhost:8080/api/discounts
+Accept: application/json
+Authorization: Bearer my-secret-token
+Content-Type: application/json
+
+{
+  "tanggal": "2026-07-20",
+  "nominal": 100000
+}
+
+### update
+PUT http://localhost:8080/api/discounts/1
+Accept: application/json
+Authorization: Bearer my-secret-token
+Content-Type: application/json
+
+{
+  "nominal": 150000
+}
+
+### delete
+DELETE http://localhost:8080/api/discounts/1
+Accept: application/json
+Authorization: Bearer my-secret-token

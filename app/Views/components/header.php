@@ -16,6 +16,15 @@
         </form>
     </div><!-- End Search Bar -->
 
+    <?php $activeDiscount = session('active_discount'); ?>
+    <?php if ($activeDiscount !== null) : ?>
+    <div class="d-flex align-items-center ms-3">
+        <span class="badge bg-success px-3 py-2 fs-6" style="white-space:nowrap;">
+            Hari ini ada diskon IDR <?= number_format($activeDiscount['nominal'], 0, ',', '.') ?> per item
+        </span>
+    </div>
+    <?php endif; ?>
+
     <nav class="header-nav ms-auto">
         <ul class="d-flex align-items-center">
 
